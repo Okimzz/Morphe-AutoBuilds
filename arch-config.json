@@ -12,6 +12,6 @@
   {
     "app_name": "reddit",
     "source": "morphe",
-    "arches": ["arm64-v8a"]
+    "arches": ["universal"]
   }
 ]

@@ -1,1 +1,2 @@
--AddResourcesPatch
+- custom-branding
+- change-package-name

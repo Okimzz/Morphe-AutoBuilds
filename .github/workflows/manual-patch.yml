@@ -73,10 +73,10 @@ jobs:
       
       - name: Force Experimental Flag
         run: |
-          # Trik DevOps: Membajak eksekutor Java agar selalu memaksa mode experimental
+          # Trik DevOps: Membajak eksekutor Java dengan akses sudo (administrator)
           JAVA_PATH=$(which java)
-          mv "$JAVA_PATH" "${JAVA_PATH}-orig"
-          cat << 'EOF' > "$JAVA_PATH"
+          sudo mv "$JAVA_PATH" "${JAVA_PATH}-orig"
+          sudo tee "$JAVA_PATH" > /dev/null << 'EOF'
           #!/bin/bash
           # Jika perintah mengandung kata 'patch' dan belum ada '--experimental', sisipkan!
           if [[ "$*" == *" patch "* ]] && [[ "$*" != *"--experimental"* ]]; then
@@ -85,7 +85,7 @@ jobs:
             exec "${0}-orig" "$@"
           fi
           EOF
-          chmod +x "$JAVA_PATH"
+          sudo chmod +x "$JAVA_PATH"
 
       - name: Build APK
         env:

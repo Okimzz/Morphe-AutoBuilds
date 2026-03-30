@@ -71,6 +71,22 @@ jobs:
           pip install -r requirements.txt
           pip install requests beautifulsoup4
       
+      - name: Force Experimental Flag
+        run: |
+          # Trik DevOps: Membajak eksekutor Java agar selalu memaksa mode experimental
+          JAVA_PATH=$(which java)
+          mv "$JAVA_PATH" "${JAVA_PATH}-orig"
+          cat << 'EOF' > "$JAVA_PATH"
+          #!/bin/bash
+          # Jika perintah mengandung kata 'patch' dan belum ada '--experimental', sisipkan!
+          if [[ "$*" == *" patch "* ]] && [[ "$*" != *"--experimental"* ]]; then
+            exec "${0}-orig" "$@" --experimental
+          else
+            exec "${0}-orig" "$@"
+          fi
+          EOF
+          chmod +x "$JAVA_PATH"
+
       - name: Build APK
         env:
           APP_NAME: ${{ inputs.app_name }}
@@ -239,33 +255,3 @@ jobs:
               jq '.version = ""' "$config_file" > tmp.json && mv tmp.json "$config_file"
             fi
           done
-      - name: Install Dependencies
-        run: |
-          pip install -r requirements.txt
-          pip install requests beautifulsoup4
-      
-      - name: Force Experimental Flag
-        run: |
-          # Trik DevOps: Membajak eksekutor Java agar selalu memaksa mode experimental
-          JAVA_PATH=$(which java)
-          mv "$JAVA_PATH" "${JAVA_PATH}-orig"
-          cat << 'EOF' > "$JAVA_PATH"
-          #!/bin/bash
-          # Jika perintah mengandung kata 'patch' dan belum ada '--experimental', sisipkan!
-          if [[ "$*" == *" patch "* ]] && [[ "$*" != *"--experimental"* ]]; then
-            exec "${0}-orig" "$@" --experimental
-          else
-            exec "${0}-orig" "$@"
-          fi
-          EOF
-          chmod +x "$JAVA_PATH"
-
-      - name: Build APK
-        env:
-          APP_NAME: ${{ inputs.app_name }}
-          SOURCE: ${{ inputs.source }}
-          ARCH: ${{ inputs.architecture }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "🔧 Building ${{ inputs.app_name }} with ${{ inputs.source }} for ${{ inputs.architecture }} architecture..."
-          python -m src
